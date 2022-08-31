@@ -1,5 +1,5 @@
 from torch import nn
-from torch.nn.functional import softmax, sigmoid
+from torch.nn.functional import softmax
 
 class ForwardPolicy(nn.Module):
     def __init__(self, state_dim, hidden_dim, num_actions) -> None:
