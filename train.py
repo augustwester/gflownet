@@ -56,24 +56,3 @@ for i in range(num_epochs):
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
 s, _ = model.sample_states(s0, explore=False, return_stats=False)
 plot(s, env)
-
-"""
-mat1 = torch.zeros(env.state_dim)
-mat2 = torch.zeros(env.state_dim)
-
-for s_ in s:
-    mat1[s_.argmax()] += 1
-
-for i in range(env.state_dim):
-    s = one_hot(torch.LongTensor([i]), env.state_dim).float()
-    s = s.view(1, 1, -1)
-    mat2[i] = env.reward(s)
-    
-mat1 = mat1.view(size, size)
-mat2 = mat2.view(size, size)
-
-_, ax = plt.subplots(1, 2)
-ax[0].matshow(mat1.numpy())
-ax[1].matshow(mat2.numpy())
-plt.show()
-"""
