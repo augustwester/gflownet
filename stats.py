@@ -1,34 +1,52 @@
 import torch
-from torch.nn.functional import pad
 
 class Stats:
-    def __init__(self, s0, backward_policy, reward_fn) -> None:
+    def __init__(self, s0, backward_policy, env):
         self.backward_policy = backward_policy
-        self.reward_fn = reward_fn
-        self._back_prob = None
-        self.traj = s0.view(len(s0), 1, -1)
-        self.fwd_prob = torch.empty(len(s0), 0)
-        self.term_prob = torch.empty_like(self.fwd_prob)
-        self.rewards = reward_fn(s0)
+        self.env = env
+        self._traj = [s0.view(len(s0), 1, -1)]
+        self._fwd_probs = []
+        self._term_probs = []
+        self._rewards = [env.reward(s0)]
+        self.num_samples = s0.shape[0]
     
     def log(self, s, probs, actions, done):
-        self.traj = torch.cat((self.traj, s.view(len(s), 1, -1)), dim=1)
-        self.fwd_prob = pad(self.fwd_prob, (0,1,0,0))
-        self.term_prob = pad(self.term_prob, (0,1,0,0))
+        had_terminating_action = actions == probs.shape[-1] - 1
+        active = ~done
+        active[active == True] = ~had_terminating_action
+    
+        states = self._traj[-1].clone().squeeze(1)
+        states[active] = s[active]
+        self._traj.append(states.view(self.num_samples, 1, -1))
         
-        active = actions != probs.shape[-1] - 1
-        inactive = done.clone()
-        inactive[~done] = ~active
+        fwd_probs = torch.zeros(self.num_samples, 1)
+        fwd_probs[active] = probs[~had_terminating_action].gather(1, actions[~had_terminating_action].unsqueeze(1))
+        self._fwd_probs.append(fwd_probs)
         
-        self.fwd_prob[~inactive, -1:] = probs[active].gather(1, actions[active].unsqueeze(1))
-        self.term_prob[~done, -1] = probs[:, -1]
+        term_probs = torch.zeros(self.num_samples, 1)
+        term_probs[~done] = probs[:, -1:]
+        self._term_probs.append(term_probs)
         
-        rewards = torch.zeros(len(s), 1)
-        rewards[~inactive] = self.reward_fn(s[~inactive])
-        self.rewards = torch.cat((self.rewards, rewards), dim=1)
-        
+        rewards = torch.zeros(self.num_samples, 1)
+        rewards[active] = self.env.reward(s[active])
+        self._rewards.append(rewards)
+    
     @property
-    def back_prob(self):
-        if self._back_prob is not None:
-            return self._back_prob.clone()
+    def traj(self):
+        return torch.cat(self._traj, dim=1)[:, :-1, :]
+    
+    @property
+    def fwd_probs(self):
+        return torch.cat(self._fwd_probs, dim=1)[:, :-1]
+          
+    @property
+    def back_probs(self):
         return self.backward_policy(self.traj)
+    
+    @property
+    def term_probs(self):
+        return torch.cat(self._term_probs, dim=1)
+    
+    @property
+    def rewards(self):
+        return torch.cat(self._rewards, dim=1)[:, :-1]
