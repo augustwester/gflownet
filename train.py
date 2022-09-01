@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 from torch.nn.functional import one_hot
 from gflownet import GFlowNet
-from forward_policy import ForwardPolicy
+from policy import ForwardPolicy
 from utils import detailed_balance_loss
 from torch.optim import Adam
 from env import Hypergrid
