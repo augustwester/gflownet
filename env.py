@@ -45,4 +45,4 @@ class Hypergrid(Env):
         norm = torch.abs(coord / (self.size-1) - 0.5)
         R1_term = torch.prod(0.25 < norm, dim=1)
         R2_term = torch.prod((0.3 < norm) & (norm < 0.4), dim=1)
-        return (R0 + R1*R1_term + R2*R2_term).unsqueeze(1)
+        return (R0 + R1*R1_term + R2*R2_term)
