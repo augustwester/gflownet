@@ -6,7 +6,7 @@ This repo contains an implementation of the Generative Flow Net (GFlowNet) archi
 
 The model is trained using online learning (i.e. by continually evaluating samples drawn from the model's own policy rather than a fixed set of samples drawn from another policy) and the [trajectory balance loss](https://arxiv.org/abs/2201.13259). We evaluate the model's performance using the grid domain of the original paper. This is visualized by the end of training.
 
-The code for training the model is simple.
+The code for training the model is simple:
 
 1. Initialize the grid environment using a grid size
 2. Define a policy network taking a state (represented by a vector) as input and outputting a vector of probabilities over possible actions. (In the grid domain, the number of actions is three: **Down**, **Right**, and **Terminate**.)
