@@ -3,10 +3,10 @@ from torch.nn.functional import one_hot
 from gflownet.env import Env
 
 class Grid(Env):
-    def __init__(self, size, num_actions):
+    def __init__(self, size):
         self.size = size
         self.state_dim = size**2
-        self.num_actions = num_actions
+        self.num_actions = 3 # down, right, terminate
         
     def update(self, s, actions):
         idx = s.argmax(1)

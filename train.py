@@ -38,8 +38,8 @@ def backward_policy(s):
     return probs
 
 def train(batch_size, num_epochs):
-    env = Grid(size=size, num_actions=3)
-    forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=3)
+    env = Grid(size=size)
+    forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=env.num_actions)
     model = GFlowNet(forward_policy, backward_policy, env)
     opt = Adam(model.parameters(), lr=5e-3)
 
