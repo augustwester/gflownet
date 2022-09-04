@@ -9,7 +9,7 @@ The model is trained using online learning (i.e. by continually evaluating sampl
 The code for training the model is simple:
 
 1. Initialize the grid environment using a grid size
-2. Define a policy network taking a state (represented by a vector) as input and outputting a vector of probabilities over possible actions. (In the grid domain, the number of actions is three: **Down**, **Right**, and **Terminate**.)
+2. Define a policy network taking a state vector as input and outputting a vector of probabilities over possible actions. (In the grid domain, the number of actions is three: **Down**, **Right**, and **Terminate**.)
 3. Define a backward policy. In this case, the policy is not estimated but fixed to 0.5 for all parent states (except when the parent state is the only one possible).
 
 With this, you initialize the GFlowNet along with the optimizer to use during training.
