@@ -4,7 +4,7 @@ import argparse
 from tqdm import tqdm
 from torch.nn.functional import one_hot
 from gflownet.gflownet import GFlowNet
-from gflownet.policy import ForwardPolicy, RandomPolicy
+from policy import ForwardPolicy
 from gflownet.utils import trajectory_balance_loss
 from torch.optim import Adam
 from grid import Grid
