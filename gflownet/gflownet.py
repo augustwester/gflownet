@@ -2,9 +2,7 @@ import torch
 from torch import nn
 from torch.nn.parameter import Parameter
 from torch.distributions import Categorical
-from stats import Stats
-
-from time import time
+from .stats import Stats
 
 class GFlowNet(nn.Module):
     def __init__(self, forward_policy, backward_policy, env):
@@ -18,11 +16,8 @@ class GFlowNet(nn.Module):
         probs = self.env.mask(s) * probs
         return probs / probs.sum(1).unsqueeze(1)
     
-    def forward_probs(self, s, gamma=0.5):
+    def forward_probs(self, s):
         probs = self.forward_policy(s)
-        unif = torch.rand_like(probs)
-        unif[:, -1] = 0
-        probs = gamma * unif + (1 - gamma) * probs
         return self.mask_and_normalize(s, probs)
     
     def sample_states(self, s0, return_stats=False):

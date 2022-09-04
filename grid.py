@@ -1,25 +1,11 @@
 import torch
-from abc import ABC, abstractmethod
 from torch.nn.functional import one_hot
+from gflownet.env import Env
 
-class Env(ABC):
-    @abstractmethod
-    def update(self, s, actions):
-        pass
-    
-    @abstractmethod
-    def mask(self, s):
-        pass
-    
-    @abstractmethod
-    def reward(self, s):
-        pass
-
-class Hypergrid(Env):
-    def __init__(self, dim, size, num_actions):
-        self.dim = dim
+class Grid(Env):
+    def __init__(self, size, num_actions):
         self.size = size
-        self.state_dim = size**dim
+        self.state_dim = size**2
         self.num_actions = num_actions
         
     def update(self, s, actions):
@@ -40,7 +26,7 @@ class Hypergrid(Env):
         
     def reward(self, s):
         grid = s.view(len(s), self.size, self.size)
-        coord = (grid == 1).nonzero()[:, 1:].view(len(s), self.dim)
+        coord = (grid == 1).nonzero()[:, 1:].view(len(s), 2)
         R0, R1, R2 = 1e-2, 0.5, 2
         norm = torch.abs(coord / (self.size-1) - 0.5)
         R1_term = torch.prod(0.25 < norm, dim=1)

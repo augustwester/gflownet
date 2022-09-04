@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import argparse
 from tqdm import tqdm
 from torch.nn.functional import one_hot
-from gflownet import GFlowNet
-from policy import ForwardPolicy, RandomPolicy
-from utils import trajectory_balance_loss
+from gflownet.gflownet import GFlowNet
+from gflownet.policy import ForwardPolicy, RandomPolicy
+from gflownet.utils import trajectory_balance_loss
 from torch.optim import Adam
-from env import Hypergrid
+from grid import Grid
 
 size = 8
 
@@ -37,30 +37,19 @@ def backward_policy(s):
     probs[idx < size] = 1
     return probs
 
-def train(batch_size, num_epochs, learning):
-    env = Hypergrid(dim=2, size=size, num_actions=3)
+def train(batch_size, num_epochs):
+    env = Grid(size=size, num_actions=3)
     forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=3)
     model = GFlowNet(forward_policy, backward_policy, env)
     opt = Adam(model.parameters(), lr=5e-3)
-    
-    if learning == "offline":
-        random_policy = RandomPolicy(num_actions=3)
-        random_model = GFlowNet(random_policy, backward_policy, env)
-        s0 = one_hot(torch.zeros(100000).long(), env.state_dim).float()
-        s, replay_buffer = random_model.sample_states(s0, return_stats=True)
 
     for i in (p := tqdm(range(num_epochs))):
-        if learning == "offline":
-            sample_idxs = torch.randint(low=0, high=replay_buffer.num_samples, size=(batch_size,))
-            _s = s[sample_idxs]
-            traj = replay_buffer.traj[sample_idxs]
-            actions = replay_buffer.actions[sample_idxs]
-            fwd_probs, back_probs, rewards = model.evaluate_trajectories(_s, traj, actions)
-            loss = trajectory_balance_loss(model.total_flow, rewards, fwd_probs, back_probs)
-        else:
-            s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
-            s, stats = model.sample_states(s0, return_stats=True)
-            loss = trajectory_balance_loss(stats.total_flow, stats.rewards, stats.fwd_probs, stats.back_probs)
+        s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
+        s, stats = model.sample_states(s0, return_stats=True)
+        loss = trajectory_balance_loss(stats.total_flow,
+                                       stats.rewards,
+                                       stats.fwd_probs,
+                                       stats.back_probs)
         loss.backward()
         opt.step()
         opt.zero_grad()
@@ -74,11 +63,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--num_epochs", type=int, default=1000)
-    parser.add_argument("--learning", choices=("online", "offline"), default="online")
 
     args = parser.parse_args()
     batch_size = args.batch_size
     num_epochs = args.num_epochs
-    learning = args.learning
     
-    train(batch_size, num_epochs, learning)
+    train(batch_size, num_epochs)
