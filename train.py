@@ -27,7 +27,9 @@ def plot(samples, env):
 
     _, ax = plt.subplots(1, 2)
     ax[0].matshow(mat1.numpy())
+    ax[0].set_title("Samples")
     ax[1].matshow(mat2.numpy())
+    ax[1].set_title("Environment")
     plt.show()
 
 def train(batch_size, num_epochs):
