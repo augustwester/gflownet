@@ -6,6 +6,8 @@ This repo contains an implementation of the Generative Flow Net (GFlowNet) archi
 
 The model is trained using online learning (i.e. by continually evaluating samples drawn from the model's own policy rather than a fixed set of samples drawn from another policy) and the [trajectory balance loss](https://arxiv.org/abs/2201.13259). We evaluate the model's performance using the grid domain of the original paper. This is visualized by the end of training.
 
+![samples](images/samples.png)
+
 The code for training the model is simple:
 
 1. Initialize the grid environment using a grid size
@@ -27,7 +29,8 @@ To train the model, construct an NxD matrix of initial states, where N is the de
 for i in (p := tqdm(range(num_epochs))):
   s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
   s, stats = model.sample_states(s0, return_stats=True)
-  loss = trajectory_balance_loss(stats.total_flow,
+  loss = trajectory_balance_loss(stats.total_flow,![image](https://user-images.githubusercontent.com/747600/188462615-c126e06c-df4c-4f81-9c9b-043471a027e7.png)
+
                                  stats.rewards,
                                  stats.fwd_probs,
                                  stats.back_probs)
