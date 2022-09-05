@@ -36,7 +36,7 @@ for i in (p := tqdm(range(num_epochs))):
   opt.zero_grad()
 ```
 
-Finally, when the model has been trained, you can samples states using the same `sample_states(...)` method as before, this time without supplying the `return_stats=True` argument.
+Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without supplying the `return_stats=True` argument.
 
 ```python
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
