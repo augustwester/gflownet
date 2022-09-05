@@ -4,12 +4,12 @@ import argparse
 from tqdm import tqdm
 from torch.nn.functional import one_hot
 from gflownet.gflownet import GFlowNet
-from policy import ForwardPolicy
+from policy import ForwardPolicy, BackwardPolicy
 from gflownet.utils import trajectory_balance_loss
 from torch.optim import Adam
 from grid import Grid
 
-size = 8
+size = 16
 
 def plot(samples, env):
     state_dim = samples.shape[1]
@@ -30,16 +30,10 @@ def plot(samples, env):
     ax[1].matshow(mat2.numpy())
     plt.show()
 
-def backward_policy(s):
-    idx = s.argmax(-1)
-    probs = 0.5 * torch.ones(len(s), 1)
-    probs[(idx > 0) & (idx % size == 0)] = 1
-    probs[idx < size] = 1
-    return probs
-
 def train(batch_size, num_epochs):
     env = Grid(size=size)
     forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=env.num_actions)
+    backward_policy = BackwardPolicy(env.state_dim, num_actions=env.num_actions)
     model = GFlowNet(forward_policy, backward_policy, env)
     opt = Adam(model.parameters(), lr=5e-3)
 

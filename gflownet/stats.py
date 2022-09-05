@@ -24,7 +24,7 @@ class Stats:
         self.env = env
         self._traj = [s0.view(len(s0), 1, -1)]
         self._fwd_probs = []
-        self._back_probs = []
+        self._back_probs = None
         self._actions = []
         self.rewards = torch.zeros(len(s0))
         self.num_samples = s0.shape[0]
@@ -51,7 +51,7 @@ class Stats:
         active[active == True] = ~had_terminating_action
         just_finished[just_finished == True] = had_terminating_action
     
-        states = torch.zeros_like(self._traj[-1]).squeeze(1)
+        states = torch.zeros(self.num_samples, self.env.state_dim)
         states[active] = s[active]
         self._traj.append(states.view(self.num_samples, 1, -1))
         
@@ -59,11 +59,7 @@ class Stats:
         fwd_probs[~done] = probs.gather(1, actions.unsqueeze(1))
         self._fwd_probs.append(fwd_probs)
         
-        back_probs = torch.ones(self.num_samples, 1)
-        back_probs[~done] = self.backward_policy(s[~done])
-        self._back_probs.append(back_probs)
-        
-        _actions = -torch.ones(self.num_samples, 1).long()
+        _actions = torch.full((self.num_samples, 1), self.env.num_actions - 1)
         _actions[~done] = actions.unsqueeze(1)
         self._actions.append(_actions)
         
@@ -82,13 +78,25 @@ class Stats:
         return self._fwd_probs
     
     @property
-    def back_probs(self):
-        if type(self._back_probs) is list:
-            self._back_probs = torch.cat(self._back_probs, dim=1)
-        return self._back_probs
-    
-    @property
     def actions(self):
         if type(self._actions) is list:
             self._actions = torch.cat(self._actions, dim=1)
         return self._actions
+    
+    @property
+    def back_probs(self):
+        if self._back_probs is not None:
+            return self._back_probs
+        
+        s = self.traj[:, 1:, :].reshape(-1, self.env.state_dim)
+        prev_s = self.traj[:, :-1, :].reshape(-1, self.env.state_dim)
+        actions = self.actions[:, :-1].reshape(-1, 1)
+        
+        back_probs = self.backward_policy(s) * self.env.mask(prev_s)
+        back_probs = back_probs.gather(1, actions)
+        
+        actions = self.actions[:, :-1].flatten()
+        back_probs[actions == self.env.num_actions - 1] = 1
+        self._back_probs = back_probs.reshape(self.num_samples, -1)
+        
+        return self._back_probs
