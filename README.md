@@ -9,8 +9,8 @@ The model is trained using online learning (i.e. by continually evaluating sampl
 The code for training the model is simple:
 
 1. Initialize the grid environment using a grid size
-2. Define a policy network taking a state (represented by a vector) as input and outputting a vector of probabilities over possible actions. (In the grid domain, the number of actions is three: **Down**, **Right**, and **Terminate**.)
-3. Define a backward policy. In this case, the policy is not estimated but fixed to 0.5 for all parent states (except when the parent state is the only one possible).
+2. Define a policy network taking a state vector as input and outputting a vector of probabilities over possible actions. (In the grid domain, the number of actions is three: **Down**, **Right**, and **Terminate**.)
+3. Define a backward policy. In this case, the policy is not estimated but fixed to 0.5 for all parent states (except when there is only one parent state).
 
 With this, you initialize the GFlowNet along with the optimizer to use during training.
 
@@ -36,7 +36,7 @@ for i in (p := tqdm(range(num_epochs))):
   opt.zero_grad()
 ```
 
-Finally, when the model has been trained, you can samples states using the same `sample_states(...)` method as before, this time without supplying the `return_stats=True` argument.
+Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without supplying the `return_stats=True` argument.
 
 ```python
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
