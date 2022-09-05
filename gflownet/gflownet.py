@@ -28,6 +28,15 @@ class GFlowNet(nn.Module):
         self.env = env
     
     def mask_and_normalize(self, s, probs):
+        """
+        Masks a vector of action probabilities to avoid illegal actions (i.e.
+        actions that lead outside the state space).
+        
+        Args:
+            s: An NxD matrix representing N states
+            
+            probs: An NxA matrix of action probabilities
+        """
         probs = self.env.mask(s) * probs
         return probs / probs.sum(1).unsqueeze(1)
     
