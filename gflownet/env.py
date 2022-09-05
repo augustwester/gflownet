@@ -1,6 +1,4 @@
-import torch
 from abc import ABC, abstractmethod
-from torch.nn.functional import one_hot
 
 class Env(ABC):
     @abstractmethod
