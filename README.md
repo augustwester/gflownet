@@ -29,8 +29,7 @@ To train the model, construct an NxD matrix of initial states, where N is the de
 for i in (p := tqdm(range(num_epochs))):
   s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
   s, stats = model.sample_states(s0, return_stats=True)
-  loss = trajectory_balance_loss(stats.total_flow,![image](https://user-images.githubusercontent.com/747600/188462615-c126e06c-df4c-4f81-9c9b-043471a027e7.png)
-
+  loss = trajectory_balance_loss(stats.total_flow
                                  stats.rewards,
                                  stats.fwd_probs,
                                  stats.back_probs)
