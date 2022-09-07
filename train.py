@@ -11,25 +11,16 @@ from grid import Grid
 
 size = 16
 
-def plot(samples, env):
-    state_dim = samples.shape[1]
-    mat1 = torch.zeros(state_dim)
-    mat2 = torch.zeros(state_dim)
-
-    for s_ in samples: mat1[s_.argmax()] += 1
-    for i in range(state_dim):
-        s = one_hot(torch.LongTensor([i]), state_dim).float()
-        s = s.view(1, 1, -1)
-        mat2[i] = env.reward(s)
-        
-    mat1 = mat1.view(size, size)
-    mat2 = mat2.view(size, size)
-
+def plot(samples, env):    
     _, ax = plt.subplots(1, 2)
-    ax[0].matshow(mat1.numpy())
+    s = samples.sum(0).view(size, size)
+    e = env.reward(torch.eye(env.state_dim)).view(size, size)
+
+    ax[0].matshow(s.numpy())
     ax[0].set_title("Samples")
-    ax[1].matshow(mat2.numpy())
+    ax[1].matshow(e.numpy())
     ax[1].set_title("Environment")
+    
     plt.show()
 
 def train(batch_size, num_epochs):

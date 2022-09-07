@@ -51,7 +51,7 @@ class Stats:
         active[active == True] = ~had_terminating_action
         just_finished[just_finished == True] = had_terminating_action
     
-        states = torch.zeros(self.num_samples, self.env.state_dim)
+        states = self._traj[-1].squeeze(1).clone()
         states[active] = s[active]
         self._traj.append(states.view(self.num_samples, 1, -1))
         
