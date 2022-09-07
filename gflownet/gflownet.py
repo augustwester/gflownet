@@ -76,7 +76,7 @@ class GFlowNet(nn.Module):
             terminated = actions == probs.shape[-1] - 1
             done[done == False] = terminated
         
-        return s, stats
+        return (s, stats) if return_stats else s
     
     def evaluate_trajectories(self, s, traj, actions):
         """

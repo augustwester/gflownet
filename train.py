@@ -52,7 +52,7 @@ def train(batch_size, num_epochs):
         if i % 10 == 0: p.set_description(f"{loss.item():.3f}")
 
     s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
-    s, _ = model.sample_states(s0, return_stats=False)
+    s = model.sample_states(s0, return_stats=False)
     plot(s, env)
     
 if __name__ == "__main__":
