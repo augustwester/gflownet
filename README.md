@@ -17,7 +17,7 @@ The code for training the model is simple:
 With this, you initialize the GFlowNet along with the optimizer to use during training.
 
 ```python
-env = Grid(size=16, num_actions=3)
+env = Grid(size=16)
 forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=3)
 model = GFlowNet(forward_policy, backward_policy, env)
 opt = Adam(model.parameters(), lr=5e-3)
@@ -42,5 +42,5 @@ Finally, when the model has been trained, you can sample states using the same `
 
 ```python
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
-s, _ = model.sample_states(s0)
+s = model.sample_states(s0)
 ```
