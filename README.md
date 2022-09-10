@@ -23,7 +23,7 @@ model = GFlowNet(forward_policy, backward_policy, env)
 opt = Adam(model.parameters(), lr=5e-3)
 ```
 
-To train the model, construct an NxD matrix of initial states, where N is the desired number of samples and D is the dimensionality of the state vector. Then, draw samples from the model using the `sample_states(...)` method, giving it the initial states and setting `return_stats=True`. The resulting `Stats` object contains information about the trajectory of each sample, which is used to compute the trajectory balance loss.
+To train the model, construct an NxD matrix of initial states, where N is the desired number of samples and D is the dimensionality of the state vector. Then, draw samples from the model using the `sample_states(...)` method, giving it the initial states and setting `return_log=True`. The resulting `Log` object contains information about the trajectory of each sample, which is used to compute the trajectory balance loss.
 
 ```python
 for i in (p := tqdm(range(num_epochs))):
