@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn.parameter import Parameter
 from torch.distributions import Categorical
-from .stats import Stats
+from .log import Log
 
 class GFlowNet(nn.Module):
     def __init__(self, forward_policy, backward_policy, env):
@@ -50,7 +50,7 @@ class GFlowNet(nn.Module):
         probs = self.forward_policy(s)
         return self.mask_and_normalize(s, probs)
     
-    def sample_states(self, s0, return_stats=False):
+    def sample_states(self, s0, return_log=False):
         """
         Samples and returns a collection of final states from the GFlowNet.
         
@@ -63,48 +63,52 @@ class GFlowNet(nn.Module):
         """
         s = s0.clone()
         done = torch.BoolTensor([False] * len(s))
-        stats = Stats(s0, self.backward_policy, self.total_flow, self.env) if return_stats else None
+        stats = Log(s0, self.backward_policy, self.total_flow, self.env) if return_log else None
 
         while not done.all():
             probs = self.forward_probs(s[done == False])
             actions = Categorical(probs).sample()
             s[done == False] = self.env.update(s[done == False], actions)
             
-            if return_stats:
+            if return_log:
                 stats.log(s, probs, actions, done)
                 
             terminated = actions == probs.shape[-1] - 1
             done[done == False] = terminated
         
-        return (s, stats) if return_stats else s
+        return (s, stats) if return_log else s
     
-    def evaluate_trajectories(self, s, traj, actions):
+    def evaluate_trajectories(self, traj, actions):
         """
-        Returns the forward probabilities, backward probabilities, and rewards
-        of a collection of final states (as well as the trajectories and actions
-        which led to them) according to the GFlowNet. This is useful in an
-        offline learning context where samples drawn according to another policy
-        (e.g. a random one) are used to train the model.
+        Returns the GFlowNet's estimated forward probabilities, backward
+        probabilities, and rewards for a collection of trajectories. This is
+        useful in an offline learning context where samples drawn according to
+        another policy (e.g. a random one) are used to train the model.
         
         Args:
-            s: The set of final states for which rewards should be calculated
-            
-            traj: The trajectory of each samples in s
+            traj: The trajectory of each sample
             
             actions: The actions that produced the trajectories in traj
         """
-        traj = traj.view(traj.shape[0]*traj.shape[1], -1)
+        num_samples = len(traj)
+        traj = traj.reshape(-1, traj.shape[-1])
+        actions = actions.flatten()
+        finals = traj[actions == self.env.num_actions - 1]
+        zero_to_n = torch.arange(len(actions))
         
-        _fwd_probs = self.forward_probs(traj)
-        _actions = actions.view(len(traj))
+        fwd_probs = self.forward_probs(traj)
+        fwd_probs = torch.where(actions == -1, 1, fwd_probs[zero_to_n, actions])
+        fwd_probs = fwd_probs.reshape(num_samples, -1)
         
-        fwd_probs = torch.ones(len(traj), 1)
-        fwd_probs[_actions != -1] = _fwd_probs[_actions != -1].gather(1, _actions[_actions != -1].unsqueeze(1))
-        fwd_probs = fwd_probs.view(len(s), -1)
+        actions = actions.reshape(num_samples, -1)[:, :-1].flatten()
         
         back_probs = self.backward_policy(traj)
-        back_probs = back_probs.view(len(s), -1)
+        back_probs = back_probs.reshape(num_samples, -1, back_probs.shape[1])
+        back_probs = back_probs[:, 1:, :].reshape(-1, back_probs.shape[2])
+        back_probs = torch.where((actions == -1) | (actions == 2), 1,
+                                 back_probs[zero_to_n[:-num_samples], actions])
+        back_probs = back_probs.reshape(num_samples, -1)
         
-        rewards = self.env.reward(s)
+        rewards = self.env.reward(finals)
         
         return fwd_probs, back_probs, rewards

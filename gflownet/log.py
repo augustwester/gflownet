@@ -1,6 +1,6 @@
 import torch
 
-class Stats:
+class Log:
     def __init__(self, s0, backward_policy, total_flow, env):
         """
         Initializes a Stats object to record sampling statistics from a
@@ -59,7 +59,8 @@ class Stats:
         fwd_probs[~done] = probs.gather(1, actions.unsqueeze(1))
         self._fwd_probs.append(fwd_probs)
         
-        _actions = torch.full((self.num_samples, 1), self.env.num_actions - 1)
+        #_actions = torch.full((self.num_samples, 1), self.env.num_actions - 1)
+        _actions = -torch.ones(self.num_samples, 1).long()
         _actions[~done] = actions.unsqueeze(1)
         self._actions.append(_actions)
         
@@ -90,13 +91,12 @@ class Stats:
         
         s = self.traj[:, 1:, :].reshape(-1, self.env.state_dim)
         prev_s = self.traj[:, :-1, :].reshape(-1, self.env.state_dim)
-        actions = self.actions[:, :-1].reshape(-1, 1)
-        
-        back_probs = self.backward_policy(s) * self.env.mask(prev_s)
-        back_probs = back_probs.gather(1, actions)
-        
         actions = self.actions[:, :-1].flatten()
-        back_probs[actions == self.env.num_actions - 1] = 1
+        
+        terminated = (actions == -1) | (actions == self.env.num_actions - 1)
+        zero_to_n = torch.arange(len(terminated))
+        back_probs = self.backward_policy(s) * self.env.mask(prev_s)
+        back_probs = torch.where(terminated, 1, back_probs[zero_to_n, actions])
         self._back_probs = back_probs.reshape(self.num_samples, -1)
         
         return self._back_probs

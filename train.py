@@ -25,25 +25,25 @@ def plot(samples, env):
 
 def train(batch_size, num_epochs):
     env = Grid(size=size)
-    forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=env.num_actions)
+    forward_policy = ForwardPolicy(env.state_dim, hidden_dim=32, num_actions=env.num_actions)
     backward_policy = BackwardPolicy(env.state_dim, num_actions=env.num_actions)
     model = GFlowNet(forward_policy, backward_policy, env)
     opt = Adam(model.parameters(), lr=5e-3)
-
+    
     for i in (p := tqdm(range(num_epochs))):
         s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
-        s, stats = model.sample_states(s0, return_stats=True)
-        loss = trajectory_balance_loss(stats.total_flow,
-                                       stats.rewards,
-                                       stats.fwd_probs,
-                                       stats.back_probs)
+        s, log = model.sample_states(s0, return_log=True)
+        loss = trajectory_balance_loss(log.total_flow,
+                                       log.rewards,
+                                       log.fwd_probs,
+                                       log.back_probs)
         loss.backward()
         opt.step()
         opt.zero_grad()
         if i % 10 == 0: p.set_description(f"{loss.item():.3f}")
 
     s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
-    s = model.sample_states(s0, return_stats=False)
+    s = model.sample_states(s0, return_log=False)
     plot(s, env)
     
 if __name__ == "__main__":
