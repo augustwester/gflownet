@@ -59,7 +59,6 @@ class Log:
         fwd_probs[~done] = probs.gather(1, actions.unsqueeze(1))
         self._fwd_probs.append(fwd_probs)
         
-        #_actions = torch.full((self.num_samples, 1), self.env.num_actions - 1)
         _actions = -torch.ones(self.num_samples, 1).long()
         _actions[~done] = actions.unsqueeze(1)
         self._actions.append(_actions)
