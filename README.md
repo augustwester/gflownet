@@ -18,27 +18,24 @@ With this, you initialize the GFlowNet along with the optimizer to use during tr
 
 ```python
 env = Grid(size=16)
-forward_policy = ForwardPolicy(env.state_dim, hidden_dim=128, num_actions=3)
+forward_policy = ForwardPolicy(env.state_dim, hidden_dim=32, num_actions=3)
 model = GFlowNet(forward_policy, backward_policy, env)
 opt = Adam(model.parameters(), lr=5e-3)
 ```
 
-To train the model, construct an NxD matrix of initial states, where N is the desired number of samples and D is the dimensionality of the state vector. Then, draw samples from the model using the `sample_states(...)` method, giving it the initial states and setting `return_stats=True`. The resulting `Stats` object contains information about the trajectory of each sample, which is used to compute the trajectory balance loss.
+To train the model, construct an NxD matrix of initial states, where N is the desired number of samples and D is the dimensionality of the state vector (i.e. `state_dim`). Then, draw samples from the model using the `sample_states(...)` method, giving it the initial states and setting `return_log=True`. The resulting `Log` object contains information about the trajectory of each sample, which is used to compute the trajectory balance loss.
 
 ```python
 for i in (p := tqdm(range(num_epochs))):
   s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
-  s, stats = model.sample_states(s0, return_stats=True)
-  loss = trajectory_balance_loss(stats.total_flow
-                                 stats.rewards,
-                                 stats.fwd_probs,
-                                 stats.back_probs)
+  s, log = model.sample_states(s0, return_log=True)
+  loss = trajectory_balance_loss(log.total_flow, log.rewards, log.fwd_probs, log.back_probs)
   loss.backward()
   opt.step()
   opt.zero_grad()
 ```
 
-Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without supplying the `return_stats=True` argument.
+Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without supplying the `return_log=True` argument.
 
 ```python
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
