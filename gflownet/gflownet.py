@@ -57,13 +57,13 @@ class GFlowNet(nn.Module):
         Args:
             s0: An NxD matrix of initial states
             
-            return_stats: Return an object containing information about the
+            return_log: Return an object containing information about the
             sampling process (e.g. the trajectory of each sample, the forward
             and backward probabilities, the actions taken, etc.)
         """
         s = s0.clone()
         done = torch.BoolTensor([False] * len(s))
-        stats = Log(s0, self.backward_policy, self.total_flow, self.env) if return_log else None
+        log = Log(s0, self.backward_policy, self.total_flow, self.env) if return_log else None
 
         while not done.all():
             probs = self.forward_probs(s[done == False])
@@ -71,12 +71,12 @@ class GFlowNet(nn.Module):
             s[done == False] = self.env.update(s[done == False], actions)
             
             if return_log:
-                stats.log(s, probs, actions, done)
+                log.log(s, probs, actions, done)
                 
             terminated = actions == probs.shape[-1] - 1
             done[done == False] = terminated
         
-        return (s, stats) if return_log else s
+        return (s, log) if return_log else s
     
     def evaluate_trajectories(self, traj, actions):
         """
