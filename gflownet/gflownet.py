@@ -66,15 +66,15 @@ class GFlowNet(nn.Module):
         log = Log(s0, self.backward_policy, self.total_flow, self.env) if return_log else None
 
         while not done.all():
-            probs = self.forward_probs(s[done == False])
+            probs = self.forward_probs(s[~done])
             actions = Categorical(probs).sample()
-            s[done == False] = self.env.update(s[done == False], actions)
+            s[~done] = self.env.update(s[~done], actions)
             
             if return_log:
                 log.log(s, probs, actions, done)
                 
             terminated = actions == probs.shape[-1] - 1
-            done[done == False] = terminated
+            done[~done] = terminated
         
         return (s, log) if return_log else s
     
