@@ -26,7 +26,7 @@ opt = Adam(model.parameters(), lr=5e-3)
 To train the model, construct an NxD matrix of initial states, where N is the desired number of samples and D is the dimensionality of the state vector (i.e. `state_dim`). Then, draw samples from the model using the `sample_states(...)` method, giving it the initial states and setting `return_log=True`. The resulting `Log` object contains information about the trajectory of each sample, which is used to compute the trajectory balance loss.
 
 ```python
-for i in (p := tqdm(range(num_epochs))):
+for i in range(num_epochs):
   s0 = one_hot(torch.zeros(batch_size).long(), env.state_dim).float()
   s, log = model.sample_states(s0, return_log=True)
   loss = trajectory_balance_loss(log.total_flow, log.rewards, log.fwd_probs, log.back_probs)
