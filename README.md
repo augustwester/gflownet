@@ -35,7 +35,7 @@ for i in range(num_epochs):
   opt.zero_grad()
 ```
 
-Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without supplying the `return_log=True` argument.
+Finally, when the model has been trained, you can sample states using the same `sample_states(...)` method as before, this time without needing to supply the `return_log=True` argument.
 
 ```python
 s0 = one_hot(torch.zeros(10**4).long(), env.state_dim).float()
