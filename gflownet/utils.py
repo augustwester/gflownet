@@ -13,7 +13,7 @@ def trajectory_balance_loss(total_flow, rewards, fwd_probs, back_probs):
         samples
         
         fwd_probs: The forward probabilities associated with the trajectory of
-        each sample (i.e. the probabilities of the actions actuallt taken in
+        each sample (i.e. the probabilities of the actions actually taken in
         each trajectory)
         
         back_probs: The backward probabilities associated with each trajectory
