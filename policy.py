@@ -23,8 +23,12 @@ class BackwardPolicy:
     
     def __call__(self, s):
         idx = s.argmax(-1)
+        at_top_edge = idx < self.size
+        at_left_edge = (idx > 0) & (idx % self.size == 0)
+        
         probs = 0.5 * torch.ones(len(s), self.num_actions)
-        probs[(idx > 0) & (idx % self.size == 0)] = torch.Tensor([1, 0, 0])
-        probs[idx < self.size] = torch.Tensor([0, 1, 0])
+        probs[at_left_edge] = torch.Tensor([1, 0, 0])
+        probs[at_top_edge] = torch.Tensor([0, 1, 0])
         probs[:, -1] = 0 # disregard termination
+        
         return probs
