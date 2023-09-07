@@ -2,7 +2,7 @@
 
 ![gflownet](images/thumbnail.png)
 
-This repo is associated with the blog post ["Proportional Reward Sampling With GFlowNets"](https://sigmoidprime.com/post/gflownets/) over at [sigmoid prime](https://sigmoidprime.com). It contains an implementation of a Generative Flow Net (GFlowNet), proposed by Bengio et al. in the paper ["Flow Network based Generative Models for Non-Iterative Diverse Candidate Generation"](https://arxiv.org/abs/2106.04399) (2021).
+This repo is associated with the blog post ["Proportional Reward Sampling With GFlowNets"](https://sigmoidprime.com/post/gflownets/) over at [sigmoid prime](https://sigmoidprime.com). It contains an implementation of a Generative Flow Network (GFlowNet), proposed by Bengio et al. in the paper ["Flow Network based Generative Models for Non-Iterative Diverse Candidate Generation"](https://arxiv.org/abs/2106.04399) (2021).
 
 The model is trained using online learning (i.e. by continually evaluating samples drawn from the model's own policy rather than a fixed set of samples drawn from another policy) and the [trajectory balance loss](https://arxiv.org/abs/2201.13259). We evaluate the model's performance using the grid domain of the original paper. This is visualized by the end of training.
 
